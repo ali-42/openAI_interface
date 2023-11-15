@@ -1,0 +1,7 @@
+FROM python:latest
+
+WORKDIR /app
+RUN pip install fastapi uvicorn psycopg2-binary openai requests sqlalchemy python-jose[cryptography] passlib[bcrypt] python-multipart
+COPY entrypoint.sh .
+
+ENTRYPOINT [ "bash", "./entrypoint.sh" ]
