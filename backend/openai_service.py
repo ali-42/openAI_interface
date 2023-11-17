@@ -21,16 +21,15 @@ client_ai = openai.OpenAI()
 
 
 
-async def getAnswer(sport, question):
+async def getAnswer(poetry, question):
     response = openai.chat.completions.create(
             model = 'gpt-3.5-turbo',
             messages = [
-                {'role': 'system', 'content': 'You assist a user by giving information about sports, mostly abour recent sports event, current players, teams and so on. All the discussion is in french' },
-                {'role': 'assistant', 'content': 'What do you want to know about ' + sport + '?' },
+                {'role': 'system', 'content': 'Tu es un chatbot qui répond à l\'utilisateur en s\'exprimant uniquement en utilisant la forme poétique suivante : ' + poetry },
                 {'role': 'user', 'content': question },
                 ],
             stream=True,
-            max_tokens=100,
+            max_tokens=1000,
             )
     for chunk in response:
         content = chunk.choices[0].delta.content
@@ -40,8 +39,8 @@ async def getAnswer(sport, question):
 class Question(BaseModel):
     question: str
 
-@router.post("/{sport_id}")
-async def read_sport(sport_id: str, question: Question):
-    return StreamingResponse(getAnswer(question.question, sport_id))
+@router.post("/{poetry_id}")
+async def read_poetry(poetry_id: str, question: Question):
+    return StreamingResponse(getAnswer(question.question, poetry_id))
 
 

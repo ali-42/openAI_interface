@@ -1,62 +1,46 @@
 <script lang='ts'>
-  import Sport from "$lib/Sport.svelte";
-  import { onMount } from "svelte";
-  import { goto } from "$app/navigation";
-  import { writable } from "svelte/store";
+  import Poetry from "$lib/Poetry.svelte";
+  import { logged } from "$lib/stores";
 
-  let login = writable(false)
-
-  let currentSport: string = ""
-  let sports = [
-    "Tennis",
-    "Volleyball",
-    "Rugby",
-    "Football",
-    "Cyclisme"
+  let currentPoetry: string = ""
+  let poetries = [
+    "Haiku",
+    "Sonnet",
+    "Acrostiche",
+    "Ballade",
   ]
 
-
-  onMount(async () => {
-    const res = await fetch('http://127.0.0.1:8000/')
-    if (!res.ok) {
-      console.log('unauthorized')
-      goto('/login')
-
-    } else {
-    }
-  });
-
-
-
-  const changeSport = (sport: any) => {
-    currentSport = sport.sport.toLowerCase()
-    console.log(currentSport)
-
+  const changePoetry = (poetry: any) => {
+    currentPoetry = poetry.poetry.toLowerCase()
   }
 
 
 </script>
 
-{#if login}
+{#if $logged}
 
 <div>
+
   <nav>
-    {#each sports as sport}
-    {#if sport.toLowerCase() === currentSport}
-      <button class="sport-category current" on:click={() => changeSport({sport})}>{sport}</button><br>
+    {#each poetries as poetry}
+    {#if poetry.toLowerCase() === currentPoetry}
+      <button class="poetry-category current" on:click={() => changePoetry({poetry})}>{poetry}</button><br>
     {:else}
-      <button class="sport-category" on:click={() => changeSport({sport})}>{sport}</button><br>
+      <button class="poetry-category" on:click={() => changePoetry({poetry})}>{poetry}</button><br>
     {/if}
     {/each}
   </nav>
-  {#if currentSport !== ''}
+
+  {#if currentPoetry !== ''}
   <div class="chat">
-    <Sport bind:sport={currentSport} />
+    <Poetry bind:poetry={currentPoetry} />
   </div>
   {/if}
+
 </div>
 
 {/if}
+
 
 <style>
   div {
@@ -81,7 +65,7 @@
     flex:1;
   }
 
-  .sport-category {
+  .poetry-category {
     height:100px;
   }
 

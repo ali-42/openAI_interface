@@ -1,13 +1,12 @@
 <script lang='ts'>
-  export let sport: string = ''
+  export let poetry: string = ''
 
-  type dialog =  {
-    question: string,
-    answer: string
-  }
-
-  let dialogs: dialog[] = []
-
+  let lastAnswer = ''
+  
+  let dialogs: {
+    answer: string;
+    question: string;
+  }[] = []
 
   const loadAnswer = async (e: any) => {
     try {
@@ -20,7 +19,7 @@
 		  }
       if (!question)
         return
-      const res = await fetch('http://127.0.0.1:8000/openai_service/' + sport, {
+      const res = await fetch('http://127.0.0.1:8000/openai_service/' + poetry, {
         method: "POST",
         mode: "cors",
         cache: "no-cache",
@@ -39,11 +38,16 @@
 
       const reader = res.body!.getReader();
 
+      dialogs = [{question: question, answer: lastAnswer}, ...dialogs]
+
+      lastAnswer = ''
       while (true) {
         const {done, value} = await reader.read();
         if (!done) {
-          const answer = new TextDecoder().decode(value);
-          dialogs = [{question: question, answer: answer}, ...dialogs]
+          let ans = new TextDecoder().decode(value);
+          const splitted = ans.split('\n')
+          ans = splitted.join('<br>')
+          lastAnswer += ans
         }
         if (done) {
           break;
@@ -61,16 +65,20 @@
 
 <div>
 <form id="question" on:submit|preventDefault={loadAnswer}>
-  <input class="input_field" name="question" type="text" placeholder="ask question about {sport}"/>
+  <input class="input_field" name="question" type="text" placeholder=""/>
 </form>
-  {#each dialogs as dialog}
+    {#if lastAnswer !== ''}
+    <p class="answer">{@html lastAnswer}</p>
+    {/if}
+    {#each dialogs as dialog}
     <p class="question">Q: {dialog.question}</p>
-    <p class="answer">R: {dialog.answer}</p>
-  {/each}
+    {#if dialog.answer}
+    <p class="answer">{@html dialog.answer}</p>
+    {/if}
+    {/each}
 </div>
 
 <style>
-
   .input_field {
     font-size:1.2em;
   }
@@ -81,6 +89,5 @@
   .question {
     font-size:1.25em;
   }
-
 
 </style>
