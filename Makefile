@@ -1,4 +1,4 @@
-services = backend frontend
+services = backend frontend db pgadmin
 all:
 	docker-compose up --build --detach
 

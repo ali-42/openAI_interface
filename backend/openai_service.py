@@ -40,7 +40,7 @@ async def getAnswer(sport, question):
 class Question(BaseModel):
     question: str
 
-@router.post("{sport_id}")
+@router.post("/{sport_id}")
 async def read_sport(sport_id: str, question: Question):
     return StreamingResponse(getAnswer(question.question, sport_id))
 

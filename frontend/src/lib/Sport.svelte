@@ -20,7 +20,7 @@
 		  }
       if (!question)
         return
-      const res = await fetch('http://127.0.0.1:8000/sport/' + sport, {
+      const res = await fetch('http://127.0.0.1:8000/openai_service/' + sport, {
         method: "POST",
         mode: "cors",
         cache: "no-cache",

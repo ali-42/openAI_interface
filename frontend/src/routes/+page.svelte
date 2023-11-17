@@ -1,5 +1,10 @@
 <script lang='ts'>
   import Sport from "$lib/Sport.svelte";
+  import { onMount } from "svelte";
+  import { goto } from "$app/navigation";
+  import { writable } from "svelte/store";
+
+  let login = writable(false)
 
   let currentSport: string = ""
   let sports = [
@@ -11,6 +16,18 @@
   ]
 
 
+  onMount(async () => {
+    const res = await fetch('http://127.0.0.1:8000/')
+    if (!res.ok) {
+      console.log('unauthorized')
+      goto('/login')
+
+    } else {
+    }
+  });
+
+
+
   const changeSport = (sport: any) => {
     currentSport = sport.sport.toLowerCase()
     console.log(currentSport)
@@ -19,6 +36,8 @@
 
 
 </script>
+
+{#if login}
 
 <div>
   <nav>
@@ -36,6 +55,8 @@
   </div>
   {/if}
 </div>
+
+{/if}
 
 <style>
   div {
