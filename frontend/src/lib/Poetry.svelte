@@ -2,22 +2,26 @@
   export let poetry: string = ''
 
   let lastAnswer = ''
+  let lastQuestion = ''
+  let waiting = false
   
   let dialogs: {
+    poetry: string;
     answer: string;
     question: string;
   }[] = []
 
   const loadAnswer = async (e: any) => {
     try {
-      let question;
       const formData = new FormData(e.target)
 		  for (let field of formData) {
 			  const [key, value] = field
         if (key === 'question')
-          question = value.toString()
+          lastQuestion = value.toString()
 		  }
-      if (!question)
+      document.querySelector('.input_field').value = '';
+      waiting = true
+      if (!lastQuestion)
         return
       const res = await fetch('http://127.0.0.1:8000/openai_service/' + poetry, {
         method: "POST",
@@ -29,7 +33,7 @@
         },
         redirect: "follow",
         referrerPolicy: "no-referrer",
-        body: JSON.stringify({question: question})
+        body: JSON.stringify({question: lastQuestion})
       })
       if (!res.ok) {
         throw new Error("Network response was not ok");
@@ -38,7 +42,6 @@
 
       const reader = res.body!.getReader();
 
-      dialogs = [{question: question, answer: lastAnswer}, ...dialogs]
 
       lastAnswer = ''
       while (true) {
@@ -57,7 +60,10 @@
     } catch (error) {
       console.error("Error:", error);
     }
-    document.getElementById("question").reset();
+    dialogs = [{poetry: poetry, question: lastQuestion, answer: lastAnswer}, ...dialogs]
+    waiting = false
+    lastQuestion = ''
+    lastAnswer = ''
   }
 
 
@@ -67,27 +73,40 @@
 <form id="question" on:submit|preventDefault={loadAnswer}>
   <input class="input_field" name="question" type="text" placeholder=""/>
 </form>
+{#if waiting}
+  <p class='waiting_string'>Waiting for openai ...</p>
+{/if}
+    {#if lastQuestion !== ''}
+    <p class="question">Q: {lastQuestion}</p>
+    {/if}
     {#if lastAnswer !== ''}
     <p class="answer">{@html lastAnswer}</p>
     {/if}
     {#each dialogs as dialog}
+    {#if poetry === dialog.poetry}
     <p class="question">Q: {dialog.question}</p>
     {#if dialog.answer}
     <p class="answer">{@html dialog.answer}</p>
+    {/if}
     {/if}
     {/each}
 </div>
 
 <style>
   .input_field {
-    font-size:1.2em;
+    font-size: 1.2em;
   }
   .answer {
-    font-size:1.25em;
+    font-size: 1.25em;
   }
 
   .question {
-    font-size:1.25em;
+    font-size: 1.25em;
+  }
+
+  .waiting_string {
+    font-size: 1.5em;
+    color: grey
   }
 
 </style>

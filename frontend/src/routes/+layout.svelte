@@ -5,10 +5,10 @@ import { logged } from "$lib/stores";
 
 </script>
 
-{#key $logged}
-<Navbar />
-{/key}
-<HeadTitle />
+{#if $logged }
+  <Navbar />
+  <HeadTitle />
+{/if}
 
 <slot />
 

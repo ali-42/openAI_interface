@@ -10,7 +10,6 @@
 
 
 <nav>
-  <a href="/">Home</a>
   {#if $logged}
   <a href="/login" on:click={logout}>logout</a>
   {:else}

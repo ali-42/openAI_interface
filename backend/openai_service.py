@@ -1,9 +1,10 @@
 import openai
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import os
 import sys
+import time
 
 router = APIRouter(
         prefix='/openai_service',
@@ -19,8 +20,6 @@ if not len(OPENAI_API_KEY):
 openai.api_key = OPENAI_API_KEY
 client_ai = openai.OpenAI()
 
-
-
 async def getAnswer(poetry, question):
     response = openai.chat.completions.create(
             model = 'gpt-3.5-turbo',
@@ -35,6 +34,8 @@ async def getAnswer(poetry, question):
         content = chunk.choices[0].delta.content
         if content:
             yield content
+    return
+
 
 class Question(BaseModel):
     question: str
