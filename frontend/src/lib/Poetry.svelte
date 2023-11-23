@@ -1,4 +1,6 @@
 <script lang='ts'>
+  import axios from "axios";
+  import '../interceptor.ts'
   export let poetry: string = ''
 
   let lastAnswer = ''
@@ -12,6 +14,11 @@
   }[] = []
 
   const loadAnswer = async (e: any) => {
+    try {
+      const refreshToken = await axios.get('http://localhost:8000/')
+    } catch (e) {
+      console.log('token refresh')
+    }
     try {
       const formData = new FormData(e.target)
 		  for (let field of formData) {
@@ -30,6 +37,7 @@
         credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": 'Bearer ' + localStorage.getItem('access_token')
         },
         redirect: "follow",
         referrerPolicy: "no-referrer",

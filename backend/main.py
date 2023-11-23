@@ -10,11 +10,13 @@ import auth
 from auth import get_current_user
 
 app = FastAPI()
+
+
 app.include_router(auth.router)
 app.include_router(openai_service.router)
 
 origins = [
-    "*",
+        "http://localhost:5173",
 ]
 
 app.add_middleware(

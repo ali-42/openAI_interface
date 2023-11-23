@@ -1,7 +1,11 @@
 import openai
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
+from auth import get_current_user
 from pydantic import BaseModel
+from typing import Annotated
+from database import SessionLocal
+from sqlalchemy.orm import Session
 import os
 import sys
 import time
@@ -11,6 +15,18 @@ router = APIRouter(
         tags=['openai_service']
         )
 
+user_dependency = Annotated[dict, Depends(get_current_user)]
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+db_dependancy = Annotated[Session, Depends(get_db)]
+
+
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 if not len(OPENAI_API_KEY):
@@ -19,8 +35,7 @@ if not len(OPENAI_API_KEY):
 
 openai.api_key = OPENAI_API_KEY
 client_ai = openai.OpenAI()
-
-async def getAnswer(poetry, question):
+async def getAnswer(poetry, question, db: db_dependancy):
     response = openai.chat.completions.create(
             model = 'gpt-3.5-turbo',
             messages = [
@@ -41,7 +56,7 @@ class Question(BaseModel):
     question: str
 
 @router.post("/{poetry_id}")
-async def read_poetry(poetry_id: str, question: Question):
-    return StreamingResponse(getAnswer(question.question, poetry_id))
+async def read_poetry(user: user_dependency, poetry_id: str, question: Question, db: db_dependancy):
+    return StreamingResponse(getAnswer(question.question, poetry_id, db))
 
 

@@ -63,18 +63,41 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
                 )
 
 
+@router.get("/token/refresh")
+async def refresh_token(token: Annotated[str, Depends(oauth2_bearer)]):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get('sub')
+        user_id: int = payload.get('id')
+        if username is None or user_id is None:
+            raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Could not validate user"
+                    )
+        token = create_access_token(username, user_id, timedelta(minutes=1))
+        refresh_token = create_access_token(username, user_id, timedelta(minutes=1))
+        return [{'access_token': token, 'token_type': 'bearer'}, { 'access_token': refresh_token, 'token_type': 'bearer'}]
+    except JWTError:
+        print('error')
+        raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail='Could not validate user'
+                )
+
+
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependancy,
                       create_user_request: CreateUserRequest):
     create_user_model = Users(
             username = create_user_request.username,
-            password = bcrypt_context.hash(create_user_request.password)
+            password = bcrypt_context.hash(create_user_request.password),
+            dialogs = []
             )
     db.add(create_user_model)
     db.commit()
 
-@router.post("/token", response_model=Token)
+@router.post("/token")
 async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
                                  db: db_dependancy):
     user = authenticat_user(form_data.username, form_data.password, db)
@@ -84,4 +107,5 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
                 detail="Could not validate user."
                 )
     token = create_access_token(user.username, user.id, timedelta(minutes=20))
-    return {'access_token': token, 'token_type': 'bearer'}
+    refreshToken = create_access_token(user.username, user.id, timedelta(hours=1))
+    return [{'access_token': token, 'token_type': 'bearer'}, {'access_token': refreshToken, 'token_type': 'bearer'}]

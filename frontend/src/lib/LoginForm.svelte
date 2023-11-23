@@ -1,5 +1,6 @@
 <script lang='ts'>
   import { logged } from "./stores";
+  import { currentUser } from "./stores";
   import axios from 'axios'
   import { goto } from "$app/navigation";
 
@@ -14,9 +15,16 @@
 
       try {
         const res = await axios.post('http://127.0.0.1:8000/auth/token', formData);
-        if (res.status === 200)
-          logged.set(1)
+        if (res.status === 200) {
+          logged.set(1) 
+          localStorage.setItem("access_token", res.data[0].access_token);
+          localStorage.setItem("refresh_token", res.data[1].access_token);
+          axios.defaults.headers.common['Authorization'] = `Bearer ${res.data[0].access_token}`
+          const getUsername = await axios.get('http://127.0.0.1:8000/', {withCredentials: true})
+          if (getUsername.status === 200)
+            currentUser.set(getUsername.data.User.username)
           goto('/')
+        }
       }
       catch (e) {
         error = 'username does not exist or password does not match'
