@@ -35,6 +35,8 @@ services:
       POSTGRES_DB: $POSTGRES_DB
     expose:
       - "5432"
+    ports:
+      - "5432:5432"
 
     volumes:
       - db_data:/var/lib/postgresql/data
@@ -48,9 +50,12 @@ services:
       PGADMIN_DEFAULT_PASSWORD: $PGADMIN_DEFAULT_PASSWORD
     ports:
       - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
 
 volumes:
   db_data:
+  pgadmin-data:
 
 networks:
   default:

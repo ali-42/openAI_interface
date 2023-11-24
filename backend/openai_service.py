@@ -1,3 +1,4 @@
+from models import Dialogs
 import openai
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
@@ -35,7 +36,8 @@ if not len(OPENAI_API_KEY):
 
 openai.api_key = OPENAI_API_KEY
 client_ai = openai.OpenAI()
-async def getAnswer(poetry, question, db: db_dependancy):
+
+async def getAnswer(question, poetry, db: db_dependancy, current_user: user_dependency):
     response = openai.chat.completions.create(
             model = 'gpt-3.5-turbo',
             messages = [
@@ -45,10 +47,20 @@ async def getAnswer(poetry, question, db: db_dependancy):
             stream=True,
             max_tokens=1000,
             )
+    answer = ''
     for chunk in response:
         content = chunk.choices[0].delta.content
         if content:
+            answer += content.replace('\n', '<br>')
             yield content
+    create_dialog_model = Dialogs(
+            poetry = poetry,
+            question = question,
+            answer = answer,
+            user_id = current_user['id']
+            )
+    db.add(create_dialog_model)
+    db.commit()
     return
 
 
@@ -57,6 +69,6 @@ class Question(BaseModel):
 
 @router.post("/{poetry_id}")
 async def read_poetry(user: user_dependency, poetry_id: str, question: Question, db: db_dependancy):
-    return StreamingResponse(getAnswer(question.question, poetry_id, db))
+    return StreamingResponse(getAnswer(question.question, poetry_id, db, user))
 
 

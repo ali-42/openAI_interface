@@ -7,6 +7,7 @@ from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 import openai_service
 import auth
+import dialogs
 from auth import get_current_user
 
 app = FastAPI()
@@ -14,6 +15,7 @@ app = FastAPI()
 
 app.include_router(auth.router)
 app.include_router(openai_service.router)
+app.include_router(dialogs.router)
 
 origins = [
         "http://localhost:5173",

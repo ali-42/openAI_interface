@@ -13,10 +13,17 @@
     question: string;
   }[] = []
 
+
+  const getDialogs = async (poetry: string) => {
+    const res = await axios.get('http://localhost:8000/dialogs/' + poetry)
+    dialogs = res.data
+  }
+
+  $: getDialogs(poetry)
   const loadAnswer = async (e: any) => {
     try {
       const refreshToken = await axios.get('http://localhost:8000/')
-    } catch (e) {
+    } catch (error) {
       console.log('token refresh')
     }
     try {
@@ -91,11 +98,9 @@
     <p class="answer">{@html lastAnswer}</p>
     {/if}
     {#each dialogs as dialog}
-    {#if poetry === dialog.poetry}
     <p class="question">Q: {dialog.question}</p>
     {#if dialog.answer}
     <p class="answer">{@html dialog.answer}</p>
-    {/if}
     {/if}
     {/each}
 </div>
